@@ -12,11 +12,22 @@ from wazo_auth.services.helpers import BaseService
 logger = logging.getLogger(__name__)
 
 
+class UnknownUserHash:
+    def __eq__(self, other):
+        return False
+
+    def __ne__(self, other):
+        return True
+
+
 class UserService(BaseService):
     def __init__(self, dao, tenant_tree, group_service, encrypter=None):
         super().__init__(dao, tenant_tree)
         self._encrypter = encrypter or PasswordEncrypter()
         self._group_service = group_service
+        self._unknown_user_salt = os.urandom(self._encrypter._salt_len)
+        # The unknown_user_hash will never be equal, whatever the user input is
+        self._unknown_user_hash = UnknownUserHash()
 
     def add_policy(self, user_uuid, policy_uuid):
         self._dao.user.add_policy(user_uuid, policy_uuid)
@@ -164,13 +175,13 @@ class UserService(BaseService):
             exceptions.UnknownUsernameException,
             exceptions.UnknownLoginException,
         ):
-            return False
+            hash_ = self._unknown_user_hash
+            salt = self._unknown_user_salt
 
         if not hash_ or not salt:
-            return False
+            hash_ = self._unknown_user_hash
+            salt = self._unknown_user_salt
 
-        # TODO(pcm): A computation should happen even if the user does not exists to avoid
-        # an exploit to discover existing usernames
         return hash_ == self._encrypter.compute_password_hash(password, salt)
 
     def assert_user_in_subtenant(self, scoping_tenant_uuid, user_uuid):

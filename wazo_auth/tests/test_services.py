@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, contains, calling, equal_to, has_entries, not_, raises
@@ -39,6 +39,7 @@ class BaseServiceTestCase(TestCase):
         self.token_dao = Mock(token.TokenDAO)
         self.user_dao = Mock(user.UserDAO)
         self.encrypter = Mock(services.PasswordEncrypter)
+        self.encrypter._salt_len = 32
         self.encrypter.encrypt_password.return_value = s.salt, s.hash_
 
         self.tenant_dao.find_top_tenant.return_value = self.top_tenant_uuid
