@@ -631,6 +631,28 @@ class TestUserDAO(base.DAOTestCase):
         assert_that(hash_, not_(none()))
         assert_that(salt, not_(none()))
 
+    # fmt: off
+    @fixtures.db.user(username='u1', email_address=None)
+    @fixtures.db.user(username='u2', email_address='u2@example.com', email_confirmed=True)
+    @fixtures.db.user(username='u3', email_address='u3@example.com', email_confirmed=False)
+    # fmt: on
+    def test_get_username_by_login(self, u3, u2, u1):
+        result = self._user_dao.get_username_by_login('u1')
+        assert_that(result, equal_to('u1'))
+
+        result = self._user_dao.get_username_by_login('u2@example.com')
+        assert_that(result, equal_to('u2'))
+
+        assert_that(
+            calling(self._user_dao.get_username_by_login).with_args('u3@example.com'),
+            raises(exceptions.UnknownLoginException),
+        )
+
+        assert_that(
+            calling(self._user_dao.get_username_by_login).with_args('u0'),
+            raises(exceptions.UnknownLoginException),
+        )
+
     def _email_exists(self, address):
         filter_ = models.Email.address == address
         return (

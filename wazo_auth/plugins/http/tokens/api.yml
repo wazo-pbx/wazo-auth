@@ -10,6 +10,8 @@ paths:
         Creates a valid token for the supplied username and password combination or refresh_token
         using the specified backend.
 
+        The user's email address can be used instead of the username if the email address is confirmed.
+
         The stock backends are: ``wazo_user``, ``ldap_user``.
 
         Creating  a token with the `access_type` *offline* will also create a refresh token which can be used

@@ -1,4 +1,4 @@
-# Copyright 2019-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2019-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytest
@@ -20,6 +20,7 @@ from hamcrest import (
 from requests.exceptions import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers import until
+from wazo_auth_client import Client
 
 from .helpers import fixtures
 from .helpers.base import WazoAuthTestCase, assert_http_error
@@ -27,6 +28,19 @@ from .helpers.constants import UNKNOWN_UUID
 
 
 class TestTokens(WazoAuthTestCase):
+    @fixtures.http.user(username='u1', email_address='u1@example.com', password='bar')
+    def test_that_the_email_can_be_used_to_get_a_token(self, u1):
+        client = Client(
+            'localhost',
+            port=self.service_port(9497, 'auth'),
+            prefix=None,
+            https=False,
+            username='u1@example.com',
+            password='bar',
+        )
+        token_data = client.token.new(backend='wazo_user', expiration=1)
+        assert_that(token_data, has_entries(token=not_(None)))
+
     @fixtures.http.user(username='foo', password='bar')
     @fixtures.http.token(
         username='foo',

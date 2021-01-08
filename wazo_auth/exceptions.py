@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unidecode import unidecode
@@ -147,6 +147,12 @@ class UnknownUserException(APIException):
 class UnknownUsernameException(Exception):
     def __init__(self, username):
         msg = 'No such user: "{}"'.format(username)
+        super().__init__(msg)
+
+
+class UnknownLoginException(Exception):
+    def __init__(self, login):
+        msg = 'No such user: "{}"'.format(login)
         super().__init__(msg)
 
 

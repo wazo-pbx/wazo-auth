@@ -1,7 +1,7 @@
 # Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from sqlalchemy import and_, exc, text
+from sqlalchemy import and_, exc, or_, text
 from sqlalchemy.orm import joinedload
 from .base import BaseDAO, PaginatorMixin
 from . import filters
@@ -216,6 +216,23 @@ class UserDAO(filters.FilterMixin, PaginatorMixin, BaseDAO):
             return row.password_hash, row.password_salt
 
         raise exceptions.UnknownUsernameException(username)
+
+    def get_username_by_login(self, login):
+        query = (
+            self.session.query(User.username)
+            .outerjoin(Email)
+            .filter(
+                or_(
+                    User.username == login,
+                    and_(Email.address == login, Email.confirmed.is_(True)),
+                )
+            )
+        )
+
+        for row in query.all():
+            return row.username
+
+        raise exceptions.UnknownLoginException(login)
 
     def get_emails(self, user_uuid):
         result = []
